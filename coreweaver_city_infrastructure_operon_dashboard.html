@@ -1,0 +1,480 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+  :root {
+    --bg:       #060608;
+    --bg2:      #0c0c10;
+    --bg3:      #111118;
+    --surface:  #16161e;
+    --border:   #1e1e28;
+    --border2:  #2a2a38;
+    --accent:   #7c6cfa;
+    --accent2:  #5a4dd6;
+    --accent3:  #a99dff;
+    --accent-dim: rgba(124,108,250,0.09);
+    --cyan:     #00d4ff;
+    --cyan-dim: rgba(0,212,255,0.07);
+    --green:    #00e5a0;
+    --amber:    #ffbb4a;
+    --red:      #ff4060;
+    --text:     #e8e8f0;
+    --text2:    #7a7a90;
+    --text3:    #3a3a50;
+    --mono:     'IBM Plex Mono', monospace;
+    --sans:     'Space Grotesk', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .dash {
+    background: var(--bg);
+    font-family: var(--sans);
+    color: var(--text2);
+    padding: 1rem;
+    min-height: 600px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  /* topbar */
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding-bottom:10px; border-bottom:1px solid var(--border); margin-bottom:12px; }
+  .tb-left { display:flex; align-items:center; gap:10px; }
+  .logo-icon { width:22px; height:22px; flex-shrink:0; }
+  .logo-text { font-family:var(--mono); font-size:11px; font-weight:600; color:var(--text); letter-spacing:0.06em; }
+  .logo-text span { color:var(--accent3); }
+  .tb-right { display:flex; align-items:center; gap:14px; }
+  .live-chip { display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:9px; color:var(--green); letter-spacing:0.12em; }
+  .live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:blink 1.8s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  .network-chips { display:flex; gap:5px; }
+  .nchip { font-family:var(--mono); font-size:9px; padding:3px 7px; border-radius:2px; letter-spacing:0.08em; }
+  .nchip.arc { background:rgba(0,212,255,0.08); color:var(--cyan); border:1px solid rgba(0,212,255,0.2); }
+  .nchip.bt  { background:rgba(0,229,160,0.07); color:var(--green); border:1px solid rgba(0,229,160,0.18); }
+  .nchip.kf  { background:rgba(124,108,250,0.09); color:var(--accent3); border:1px solid rgba(124,108,250,0.2); }
+  /* subnet nav */
+  .subnet-nav { display:flex; gap:4px; margin-bottom:12px; }
+  .snav-btn { font-family:var(--mono); font-size:9px; padding:4px 10px; border-radius:2px; border:1px solid var(--border2); background:transparent; color:var(--text3); cursor:pointer; letter-spacing:0.08em; transition:all 0.15s; }
+  .snav-btn.active { background:var(--accent-dim); border-color:rgba(124,108,250,0.3); color:var(--accent3); }
+  /* kpi grid */
+  .kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-bottom:12px; }
+  .kpi { background:var(--bg2); border:1px solid var(--border); border-radius:3px; padding:10px 12px; position:relative; overflow:hidden; }
+  .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:var(--border2); transition:background 0.25s; }
+  .kpi.ok::before  { background:var(--green); }
+  .kpi.warn::before{ background:var(--amber); }
+  .kpi.err::before { background:var(--red); }
+  .kpi.info::before{ background:var(--accent); }
+  .kpi-sub  { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:5px; }
+  .kpi-val  { font-family:var(--mono); font-size:20px; font-weight:600; color:var(--text); line-height:1; }
+  .kpi-unit { font-size:10px; color:var(--text2); margin-left:3px; }
+  .kpi-meta { font-family:var(--mono); font-size:9px; margin-top:4px; }
+  .kpi-meta.ok   { color:var(--green); }
+  .kpi-meta.warn { color:var(--amber); }
+  .kpi-meta.err  { color:var(--red); }
+  .kpi-meta.dim  { color:var(--text3); }
+  /* main charts area */
+  .charts-row { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); gap:8px; margin-bottom:12px; }
+  .card { background:var(--bg2); border:1px solid var(--border); border-radius:3px; padding:12px 14px; }
+  .card-title { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.14em; text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+  .card-badge { padding:2px 7px; border-radius:2px; font-size:8px; letter-spacing:0.1em; }
+  .badge-kafka { background:var(--accent-dim); color:var(--accent3); border:1px solid rgba(124,108,250,0.2); }
+  .badge-bt    { background:rgba(0,229,160,0.07); color:var(--green); border:1px solid rgba(0,229,160,0.18); }
+  .chart-wrap  { position:relative; width:100%; }
+  /* bottom grid */
+  .bottom-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:12px; }
+  /* sensor table */
+  .sensor-table { width:100%; border-collapse:collapse; }
+  .sensor-table th { font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; padding:0 0 6px; text-align:left; border-bottom:1px solid var(--border); }
+  .sensor-table td { padding:5px 0; border-bottom:1px solid var(--border); font-size:11px; color:var(--text); }
+  .sensor-table tr:last-child td { border:none; }
+  .sensor-table td:nth-child(2) { font-family:var(--mono); font-size:10px; }
+  .status-pill { display:inline-flex; align-items:center; gap:4px; font-family:var(--mono); font-size:8px; padding:2px 6px; border-radius:2px; }
+  .sp-ok   { background:rgba(0,229,160,0.08); color:var(--green); }
+  .sp-warn { background:rgba(255,187,74,0.08); color:var(--amber); }
+  .sp-err  { background:rgba(255,64,96,0.08);  color:var(--red); }
+  /* kafka stream */
+  .stream-log { display:flex; flex-direction:column; gap:4px; font-family:var(--mono); font-size:9px; }
+  .stream-line { display:flex; gap:6px; padding:4px 6px; border-radius:2px; background:var(--bg3); border:1px solid var(--border); transition:background 0.3s; }
+  .sl-time  { color:var(--text3); flex-shrink:0; width:40px; }
+  .sl-topic { color:var(--accent3); flex-shrink:0; width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sl-msg   { color:var(--text2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sl-new { background:rgba(124,108,250,0.06); }
+  /* twin agent panel */
+  .agent-rows { display:flex; flex-direction:column; gap:5px; }
+  .agent-row { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:2px; background:var(--bg3); border:1px solid var(--border); }
+  .ar-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .ar-name { font-family:var(--mono); font-size:9px; color:var(--text); flex:1; }
+  .ar-stat { font-family:var(--mono); font-size:8px; }
+  .ar-load { font-family:var(--mono); font-size:8px; color:var(--text3); margin-left:auto; }
+  /* footer */
+  .dash-footer { border-top:1px solid var(--border); padding-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; }
+  .df-stat { font-family:var(--mono); font-size:9px; color:var(--text3); }
+  .df-stat span { color:var(--text2); }
+  /* layer controls */
+  .layer-ctrl { display:flex; gap:4px; }
+  .lc-btn { font-family:var(--mono); font-size:8px; padding:3px 8px; border-radius:2px; border:1px solid var(--border2); background:transparent; color:var(--text3); cursor:pointer; letter-spacing:0.06em; transition:all 0.15s; }
+  .lc-btn.on { background:rgba(0,212,255,0.08); border-color:rgba(0,212,255,0.25); color:var(--cyan); }
+  /* bittensor verify strip */
+  .bt-strip { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:2px; background:rgba(0,229,160,0.04); border:1px solid rgba(0,229,160,0.12); margin-bottom:12px; }
+  .bt-label { font-family:var(--mono); font-size:9px; color:var(--green); letter-spacing:0.1em; }
+  .bt-val { font-family:var(--mono); font-size:9px; color:var(--text2); }
+  .bt-sep { color:var(--text3); }
+</style>
+
+<div class="dash">
+  <!-- topbar -->
+  <div class="topbar">
+    <div class="tb-left">
+      <svg class="logo-icon" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="20" height="20" rx="3" stroke="#7c6cfa" stroke-width="1"/>
+        <circle cx="11" cy="11" r="3" stroke="#00d4ff" stroke-width="1"/>
+        <line x1="11" y1="1" x2="11" y2="8" stroke="#7c6cfa" stroke-width="0.8"/>
+        <line x1="11" y1="14" x2="11" y2="21" stroke="#7c6cfa" stroke-width="0.8"/>
+        <line x1="1" y1="11" x2="8" y2="11" stroke="#7c6cfa" stroke-width="0.8"/>
+        <line x1="14" y1="11" x2="21" y2="11" stroke="#7c6cfa" stroke-width="0.8"/>
+      </svg>
+      <div class="logo-text"><span>Coreweaver</span>Labs / city-infrastructure</div>
+    </div>
+    <div class="tb-right">
+      <div class="network-chips">
+        <span class="nchip arc">ARCTURA</span>
+        <span class="nchip bt">Operon SN</span>
+        <span class="nchip kf">Kafka</span>
+      </div>
+      <div class="live-chip"><div class="live-dot"></div>LIVE</div>
+      <div id="clock" style="font-family:var(--mono);font-size:9px;color:var(--text3);"></div>
+    </div>
+  </div>
+
+  <!-- bittensor verification strip -->
+  <div class="bt-strip">
+    <span class="bt-label">BITTENSOR VERIFIED</span>
+    <span class="bt-sep">·</span>
+    <span class="bt-val">blockmachine SN19 — <span id="bt-block">849,241</span></span>
+    <span class="bt-sep">·</span>
+    <span class="bt-val">Validator score <span id="bt-score" style="color:var(--green)">0.9847</span></span>
+    <span class="bt-sep">·</span>
+    <span class="bt-val">Mandate chain <span style="color:var(--green)">ENFORCED</span></span>
+    <span class="bt-sep">·</span>
+    <span class="bt-val" id="bt-hash" style="color:var(--text3)">0x4a7f...c219</span>
+  </div>
+
+  <!-- subnet nav -->
+  <div class="subnet-nav" id="subnetNav">
+    <button class="snav-btn active" onclick="setSubnet(0)">CITY-INFRA</button>
+    <button class="snav-btn" onclick="setSubnet(1)">WIND — eXSeek™</button>
+    <button class="snav-btn" onclick="setSubnet(2)">BUILDING MGMT</button>
+    <button class="snav-btn" onclick="setSubnet(3)">TRANSPORT</button>
+    <button class="snav-btn" onclick="setSubnet(4)">UTILITY NET</button>
+  </div>
+
+  <!-- kpi row -->
+  <div class="kpi-grid">
+    <div class="kpi ok">
+      <div class="kpi-sub">Digital Twin Sync</div>
+      <div><span class="kpi-val" id="kpi-sync">99.2</span><span class="kpi-unit">%</span></div>
+      <div class="kpi-meta ok" id="kpi-sync-m">▲ Self-evolving active</div>
+    </div>
+    <div class="kpi info">
+      <div class="kpi-sub">Kafka msg/s</div>
+      <div><span class="kpi-val" id="kpi-kafka">14,830</span></div>
+      <div class="kpi-meta dim" id="kpi-kafka-m">→ TimescaleDB ingesting</div>
+    </div>
+    <div class="kpi warn">
+      <div class="kpi-sub">Active Agents</div>
+      <div><span class="kpi-val" id="kpi-agents">16</span><span class="kpi-unit">/ 16</span></div>
+      <div class="kpi-meta warn" id="kpi-agents-m">⚠ Agent-3 elevated load</div>
+    </div>
+    <div class="kpi ok">
+      <div class="kpi-sub">IIoT Sensors</div>
+      <div><span class="kpi-val" id="kpi-sensors">4,892</span></div>
+      <div class="kpi-meta ok" id="kpi-sensors-m">▲ 98.4% reporting</div>
+    </div>
+  </div>
+
+  <!-- charts row -->
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">
+        <span id="mainLabel">KAFKA TELEMETRY STREAM — CITY SENSORS (24h)</span>
+        <div class="layer-ctrl" id="layerCtrl">
+          <button class="lc-btn on" onclick="setLayer('energy')">ENERGY</button>
+          <button class="lc-btn" onclick="setLayer('wind')">WIND</button>
+          <button class="lc-btn" onclick="setLayer('traffic')">TRAFFIC</button>
+          <button class="lc-btn" onclick="setLayer('water')">WATER</button>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:180px;"><canvas id="mainChart" role="img" aria-label="Kafka telemetry time-series for city infrastructure sensors over 24 hours"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        OPERON SUBNET — IIoT MIX
+        <span class="card-badge badge-bt">SN19</span>
+      </div>
+      <div class="chart-wrap" style="height:180px;"><canvas id="donutChart" role="img" aria-label="Donut chart of Operon IIoT infrastructure breakdown"></canvas></div>
+      <div id="donutLegend" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <!-- bottom row -->
+  <div class="bottom-row">
+    <div class="card">
+      <div class="card-title">SENSOR ARRAY STATUS <span class="card-badge badge-kafka">KAFKA</span></div>
+      <table class="sensor-table">
+        <thead><tr><th>Node</th><th>Reading</th><th>State</th></tr></thead>
+        <tbody id="sensorTable"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">LIVE KAFKA TOPICS</div>
+      <div class="stream-log" id="kafkaLog"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">AURE AGENT CLUSTER — 16 AGENTS</div>
+      <div class="agent-rows" id="agentRows"></div>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <div class="dash-footer">
+    <div class="df-stat">TIMESCALEDB <span id="db-rows">48.2M</span> rows</div>
+    <div class="df-stat">FASTAPI <span style="color:var(--green)">online</span> · <span id="req-s">1,240</span> req/s</div>
+    <div class="df-stat">TWIN ENGINE <span style="color:var(--accent3)">TypeScript · self-evolving v7.1</span></div>
+    <div class="df-stat">OPERON <span id="operon-h">arctura.network/operon</span></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let mainChart, donutChart, currentSubnet = 0, currentLayer = 'energy';
+
+const subnetNames = ['CITY-INFRA','WIND — eXSeek™','BUILDING MGMT','TRANSPORT','UTILITY NET'];
+
+const layerCfg = {
+  energy:  { label:'ENERGY GRID — KAFKA TELEMETRY (24h)',  color:'#7c6cfa', fill:'rgba(124,108,250,0.1)', base:840, noise:0.07 },
+  wind:    { label:'eXSeek™ WIND TELEMETRY — OPERON (24h)', color:'#00e5a0', fill:'rgba(0,229,160,0.08)', base:620, noise:0.12 },
+  traffic: { label:'TRANSPORT FLOW — IIoT SENSORS (24h)',   color:'#00d4ff', fill:'rgba(0,212,255,0.07)', base:74,  noise:0.09 },
+  water:   { label:'UTILITY NETWORK — PRESSURE (24h)',      color:'#ffbb4a', fill:'rgba(255,187,74,0.07)', base:58,  noise:0.05 }
+};
+
+const subnetBases = [
+  { sync:99.2, kafka:14830, sensors:4892, windFactor:1.0 },
+  { sync:98.7, kafka:9420,  sensors:1240, windFactor:2.2 },
+  { sync:97.4, kafka:6110,  sensors:2188, windFactor:0.3 },
+  { sync:99.6, kafka:18240, sensors:3760, windFactor:0.5 },
+  { sync:98.1, kafka:11620, sensors:2940, windFactor:0.6 }
+];
+
+function rnd(a,b){ return Math.round(a+Math.random()*(b-a)); }
+function rndF(a,b,d){ return parseFloat((a+Math.random()*(b-a)).toFixed(d)); }
+
+function genSeries(base, n, noise){
+  const pts=[];
+  for(let i=0;i<n;i++) pts.push(Math.round(base + Math.sin(i/4)*base*0.1 + (Math.random()-0.5)*base*noise));
+  return pts;
+}
+
+function genLabels24(){
+  const now=new Date(), labels=[];
+  for(let i=23;i>=0;i--){
+    const t=new Date(now-i*3600000);
+    labels.push(t.getHours().toString().padStart(2,'0')+':00');
+  }
+  return labels;
+}
+
+const isDark = true; // site is always dark
+const gridCol = 'rgba(255,255,255,0.04)';
+const textCol = 'rgba(255,255,255,0.3)';
+
+function buildMainChart(){
+  const cfg = layerCfg[currentLayer];
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  mainChart = new Chart(ctx,{
+    type:'line',
+    data:{ labels:genLabels24(), datasets:[{
+      data: genSeries(cfg.base,24,cfg.noise),
+      borderColor: cfg.color, backgroundColor: cfg.fill,
+      borderWidth:1.5, fill:true, tension:0.4, pointRadius:0, pointHoverRadius:3
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false,
+        callbacks:{ title: t=>t[0].label, label: c=>' '+c.parsed.y }
+      }},
+      scales:{
+        x:{ grid:{color:gridCol}, ticks:{color:textCol, font:{size:9, family:'IBM Plex Mono'}, maxTicksLimit:8}},
+        y:{ grid:{color:gridCol}, ticks:{color:textCol, font:{size:9, family:'IBM Plex Mono'}, maxTicksLimit:5}}
+      }
+    }
+  });
+}
+
+function updateMainChart(){
+  if(!mainChart) return;
+  const cfg = layerCfg[currentLayer];
+  document.getElementById('mainLabel').textContent = cfg.label;
+  mainChart.data.datasets[0].data = genSeries(cfg.base,24,cfg.noise);
+  mainChart.data.datasets[0].borderColor = cfg.color;
+  mainChart.data.datasets[0].backgroundColor = cfg.fill;
+  mainChart.update('none');
+}
+
+function buildDonutChart(){
+  const ctx = document.getElementById('donutChart').getContext('2d');
+  const p = subnetBases[currentSubnet];
+  const vals  = [Math.round(28*p.windFactor), 22, 18, 14, 10, 8];
+  const tot   = vals.reduce((a,b)=>a+b,0);
+  const pcts  = vals.map(v=>Math.round(v/tot*100));
+  const labels= ['Wind IIoT','City Sensors','Building Mgmt','Transport','Utility','Security'];
+  const colors= ['#00e5a0','#7c6cfa','#00d4ff','#ffbb4a','#a99dff','#3a3a50'];
+  if(donutChart) donutChart.destroy();
+  donutChart = new Chart(ctx,{
+    type:'doughnut',
+    data:{ labels, datasets:[{ data:pcts, backgroundColor:colors, borderWidth:0, hoverOffset:3 }]},
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'70%',
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{ label: c=>' '+c.label+': '+c.raw+'%' }}}
+    }
+  });
+  const leg = document.getElementById('donutLegend');
+  leg.innerHTML = labels.map((l,i)=>`<span style="display:flex;align-items:center;gap:3px;font-family:var(--mono);font-size:9px;color:var(--text3)"><span style="width:7px;height:7px;border-radius:1px;background:${colors[i]};flex-shrink:0"></span>${l} ${pcts[i]}%</span>`).join('');
+}
+
+const sensorNodes = [
+  {id:'CW-SN-001',type:'Energy meter',  unit:'kW'},
+  {id:'CW-SN-042',type:'Wind speed',    unit:'m/s'},
+  {id:'CW-SN-107',type:'Traffic flow',  unit:'veh/h'},
+  {id:'CW-SN-228',type:'Water pressure',unit:'PSI'},
+  {id:'CW-SN-315',type:'Air quality',   unit:'AQI'},
+  {id:'CW-SN-401',type:'Temp/humidity', unit:'°C'}
+];
+
+function buildSensorTable(){
+  const tbody = document.getElementById('sensorTable');
+  tbody.innerHTML = sensorNodes.map(s=>{
+    const v = rndF(10,999,1);
+    const r = Math.random();
+    const [cls, lbl] = r>0.85 ? ['sp-warn','ELEVATED'] : r>0.97 ? ['sp-err','FAULT'] : ['sp-ok','NOMINAL'];
+    return `<tr>
+      <td style="font-family:var(--mono);font-size:9px;color:var(--text3)">${s.id}<br><span style="font-size:8px;color:var(--text3)">${s.type}</span></td>
+      <td>${v}<span style="font-size:9px;color:var(--text3)"> ${s.unit}</span></td>
+      <td><span class="status-pill ${cls}">${lbl}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+const kafkaTopics = [
+  'city.energy.grid.readings',
+  'city.wind.exseek.telemetry',
+  'city.transport.flow.sensors',
+  'city.water.pressure.nodes',
+  'city.building.hvac.status',
+  'operon.twin.sync.delta',
+  'operon.agent.actions',
+  'arctura.sn19.verified.batch',
+  'city.security.anomaly.detect',
+  'city.utility.meter.readings'
+];
+
+function kafkaMsg(topic){
+  const msgs = {
+    'city.energy.grid.readings':   ()=>`node=${rnd(1,200)} kW=${rnd(100,2000)}`,
+    'city.wind.exseek.telemetry':  ()=>`turbine=T${rnd(1,48)} rpm=${rndF(8,22,1)} pwr=${rnd(200,2000)}kW`,
+    'city.transport.flow.sensors': ()=>`road=R${rnd(1,30)} veh=${rnd(20,400)}/h dir=NB`,
+    'city.water.pressure.nodes':   ()=>`node=W${rnd(1,80)} psi=${rndF(40,75,1)} flow=${rndF(10,90,1)}`,
+    'city.building.hvac.status':   ()=>`bld=B${rnd(1,60)} zone=${rnd(1,8)} temp=${rndF(18,26,1)}°C`,
+    'operon.twin.sync.delta':      ()=>`twin=city-infra delta=${rndF(0,0.4,3)} fidelity=${rndF(98,99.8,2)}%`,
+    'operon.agent.actions':        ()=>`agent=A${rnd(1,16)} action=optimize target=sector-${rnd(1,12)}`,
+    'arctura.sn19.verified.batch': ()=>`block=${rnd(849200,849260)} score=${rndF(0.97,0.999,4)} ✓BFT`,
+    'city.security.anomaly.detect':()=>`sector=${rnd(1,20)} anomaly=none confidence=${rndF(94,99.9,1)}%`,
+    'city.utility.meter.readings': ()=>`meter=U${rnd(1,300)} kwh=${rndF(10,800,1)} period=1h`
+  };
+  return (msgs[topic]||(() => 'payload={}'))();
+}
+
+let logLines = [];
+function buildKafkaLog(){
+  const container = document.getElementById('kafkaLog');
+  if(logLines.length===0){
+    for(let i=0;i<6;i++){
+      const t = kafkaTopics[rnd(0,kafkaTopics.length-1)];
+      const now = new Date();
+      logLines.push({ time: now.toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}), topic:t, msg:kafkaMsg(t), fresh:false });
+    }
+  }
+  container.innerHTML = logLines.slice(-6).map((l,i,arr)=>`
+    <div class="stream-line${i===arr.length-1&&l.fresh?' sl-new':''}">
+      <span class="sl-time">${l.time}</span>
+      <span class="sl-topic">${l.topic.split('.').pop()}</span>
+      <span class="sl-msg">${l.msg}</span>
+    </div>`).join('');
+}
+
+function pushKafkaLine(){
+  const t = kafkaTopics[rnd(0,kafkaTopics.length-1)];
+  const now = new Date();
+  logLines.push({ time: now.toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}), topic:t, msg:kafkaMsg(t), fresh:true });
+  if(logLines.length>20) logLines.shift();
+  buildKafkaLog();
+}
+
+const agentNames = ['twin-sync','energy-opt','wind-forecast','traffic-ctrl','anomaly-det','bft-verify','data-ingest','signal-proc','pred-maint','load-balance','route-opt','sensor-val','emit-proof','mandate-enf','geo-index','self-evolve'];
+const agentColors = { active:'#00e5a0', busy:'#ffbb4a', idle:'#3a3a50' };
+
+function buildAgentRows(){
+  const container = document.getElementById('agentRows');
+  container.innerHTML = agentNames.map((n,i)=>{
+    const r = Math.random();
+    const state = r>0.75 ? (r>0.9?'idle':'busy') : 'active';
+    const load = state==='active'?rnd(40,90):state==='busy'?rnd(80,99):rnd(2,15);
+    return `<div class="agent-row">
+      <div class="ar-dot" style="background:${agentColors[state]}"></div>
+      <span class="ar-name">${n}</span>
+      <span class="ar-stat" style="color:${agentColors[state]}">${state.toUpperCase()}</span>
+      <span class="ar-load">${load}%</span>
+    </div>`;
+  }).join('');
+}
+
+function setSubnet(idx){
+  currentSubnet = idx;
+  document.querySelectorAll('.snav-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  updateKPIs();
+  buildDonutChart();
+  updateMainChart();
+}
+
+function setLayer(l){
+  currentLayer = l;
+  document.querySelectorAll('.lc-btn').forEach(b=>{ b.classList.toggle('on', b.textContent.toLowerCase().includes(l)); });
+  updateMainChart();
+}
+
+function updateKPIs(){
+  const p = subnetBases[currentSubnet];
+  const sync = rndF(p.sync-0.4, p.sync+0.2, 1);
+  const kafka = rnd(Math.round(p.kafka*0.9), Math.round(p.kafka*1.1));
+  const sensors = rnd(p.sensors-30, p.sensors+30);
+  document.getElementById('kpi-sync').textContent = sync;
+  document.getElementById('kpi-kafka').textContent = kafka.toLocaleString();
+  document.getElementById('kpi-sensors').textContent = sensors.toLocaleString();
+  document.getElementById('bt-score').textContent = rndF(0.974,0.999,4);
+  document.getElementById('bt-block').textContent = (849241 + rnd(0,40)).toLocaleString();
+  document.getElementById('req-s').textContent = rnd(1100,1800).toLocaleString();
+}
+
+function updateClock(){
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en',{hour12:false});
+}
+
+// init
+buildMainChart();
+buildDonutChart();
+buildSensorTable();
+buildKafkaLog();
+buildAgentRows();
+updateKPIs();
+updateClock();
+
+// ticks
+setInterval(()=>{ updateKPIs(); updateClock(); }, 3000);
+setInterval(pushKafkaLine, 1400);
+setInterval(buildSensorTable, 7000);
+setInterval(buildAgentRows, 5000);
+</script>
